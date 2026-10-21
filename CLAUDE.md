@@ -14,6 +14,8 @@ node packages/cli/dist/index.js ops
 node packages/cli/dist/index.js posts create --text "hi" --dry-run   # no credentials needed
 node packages/cli/dist/index.js auth status
 node packages/cli/dist/index.js config set-unofficial on --i-understand
+node packages/cli/dist/index.js setup --dry-run
+node packages/cli/dist/index.js uninstall --dry-run
 
 node scripts/test-core.mjs        # PKCE, pricing, limiter, state, cookies, materials
 node scripts/test-ops.mjs         # operation behavior with a fake transport

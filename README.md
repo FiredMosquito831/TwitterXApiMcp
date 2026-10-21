@@ -14,12 +14,13 @@ A terminal control plane for **your own** X account: a CLI, a typed SDK layer, a
 
 ```bash
 npm install -g x-mcp-automation
-xctl --help
+xctl setup          # sign in, install the Claude Code plugin, run doctor
 ```
 
 Without a global install:
 
 ```bash
+npx -y x-mcp-automation setup
 npx -y x-mcp-automation --help
 ```
 

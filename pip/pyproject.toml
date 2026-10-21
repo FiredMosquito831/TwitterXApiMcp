@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "x-mcp-automation"
-version = "0.1.1"
+version = "0.1.2"
 description = "Launcher for the xctl CLI and MCP server for your own X account. Requires Node.js 24 or newer."
 readme = "README.md"
 requires-python = ">=3.9"

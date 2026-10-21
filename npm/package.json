@@ -1,6 +1,6 @@
 {
   "name": "x-mcp-automation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI and MCP server for your own X account: posts, threads, media, DMs, bookmarks, lists, analytics, plus an explicit opt-in unofficial transport.",
   "keywords": [
     "x",
@@ -25,17 +25,20 @@
     "url": "https://github.com/FiredMosquito831/TwitterXApiMcp/issues"
   },
   "bin": {
+    "x-mcp-automation": "bin/xctl.mjs",
     "xctl": "bin/xctl.mjs",
     "xctl-mcp": "bin/xctl-mcp.mjs",
     "x": "bin/x.mjs",
     "x-mcp": "bin/x-mcp.mjs"
   },
   "scripts": {
+    "postinstall": "node scripts/postinstall.mjs",
     "prepublishOnly": "node ../scripts/verify-versions.mjs && node scripts/prepublish.mjs"
   },
   "files": [
     "bin/",
     "dist/",
+    "scripts/",
     "README.md",
     "LICENSE",
     "NOTICE"

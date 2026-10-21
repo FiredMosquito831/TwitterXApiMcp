@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Claude Code plugin marketplace for xctl: control your own X account from an agent, with explicit confirmation and spend limits.",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "plugins": [
     {

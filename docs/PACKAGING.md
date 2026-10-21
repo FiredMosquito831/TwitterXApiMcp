@@ -36,6 +36,8 @@ plugins/xctl/              Claude Code plugin
 
 Why the plugin server is committed but `npm/dist` is not: Claude Code installs a plugin from a git ref, so the server must exist in the repository. npm and PyPI build their artifacts in CI, so their copies are ignored.
 
+The npm package has a `postinstall` **notice only**: it prints "run `xctl setup`" and never edits configuration or opens a browser. Installation side effects belong to the explicit `xctl setup` / `xctl uninstall` commands.
+
 ## Build locally
 
 ```bash

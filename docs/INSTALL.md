@@ -10,12 +10,41 @@
 
 The Python package is a launcher; the application is Node.js. `pipx` users still need Node on PATH (or `XCTL_NODE` pointing at it).
 
+## One command that does everything
+
+After installing the package, one command covers the rest:
+
+```bash
+xctl setup
+```
+
+It will, in order:
+
+1. Sign you in with OAuth 2.0 PKCE if no token is stored (opens a browser).
+2. Add the `xctl-marketplace` and install the `xctl` Claude Code plugin at user scope.
+3. Run `xctl doctor` and print what is missing.
+
+Useful flags: `--skip-auth`, `--agent none` (npm/MCP only, no plugin), `--scope project`, `--dry-run`.
+
+With `npx`, without a global install:
+
+```bash
+npx -y x-mcp-automation setup
+```
+
+The plugin ships its own server bundle, so this path needs no global npm package afterwards. Uninstall with:
+
+```bash
+xctl uninstall            # removes the plugin and marketplace
+xctl uninstall --purge    # also deletes stored tokens and cookies for the profile
+```
+
 ## npm
 
 ```bash
 npm install -g x-mcp-automation
+xctl setup
 xctl --help
-xctl auth login
 ```
 
 Without installing:
@@ -25,7 +54,7 @@ npx -y x-mcp-automation --help
 npx -y --package x-mcp-automation xctl-mcp    # MCP server over stdio
 ```
 
-Bins: `xctl`, `xctl-mcp`, and the aliases `x`, `x-mcp`.
+Bins: `x-mcp-automation`, `xctl`, `xctl-mcp`, and the aliases `x`, `x-mcp`. The installer prints a one-line notice after a global install; it never changes your config on its own.
 
 ## PyPI / pipx
 

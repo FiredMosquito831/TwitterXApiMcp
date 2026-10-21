@@ -482,6 +482,82 @@ function claudeBinary(): string {
   return process.platform === 'win32' ? 'claude.cmd' : 'claude';
 }
 
+interface InstallOptions {
+  agent: string;
+  scope: string;
+  marketplace: string;
+  dryRun?: boolean;
+  quiet?: boolean;
+}
+
+async function installClaudePlugin(options: InstallOptions): Promise<void> {
+  const marketplace = options.marketplace;
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(marketplace)) {
+    fail(new Error('--marketplace must look like owner/repo'));
+  }
+  const scope = options.scope;
+  if (!['user', 'project', 'local'].includes(scope)) {
+    fail(new Error('--scope must be user, project or local'));
+  }
+
+  if (options.agent !== 'claude') {
+    process.stdout.write(
+      `For ${options.agent}, add this to its MCP configuration:\n\n` +
+        JSON.stringify(
+          {
+            mcpServers: {
+              xctl: {
+                command: 'npx',
+                args: ['-y', '--package', 'x-mcp-automation', 'xctl-mcp'],
+                env: { XCTL_SPEND_CAP: '5' },
+              },
+            },
+          },
+          null,
+          2,
+        ) +
+        '\n',
+    );
+    return;
+  }
+
+  const commands: Array<[string, string[]]> = [
+    [claudeBinary(), ['plugin', 'marketplace', 'add', marketplace]],
+    [claudeBinary(), ['plugin', 'install', 'xctl@xctl-marketplace', '--scope', scope]],
+  ];
+
+  if (options.dryRun) {
+    for (const [cmd, args] of commands) process.stdout.write(`${cmd} ${args.join(' ')}\n`);
+    return;
+  }
+
+  const probe = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
+  if (probe.error) {
+    fail(
+      new Error(
+        'The claude CLI was not found on PATH. Install Claude Code first, or add the server manually with ' +
+          '`claude mcp add --transport stdio x -- xctl-mcp`.',
+      ),
+    );
+  }
+
+  for (const [cmd, args] of commands) {
+    process.stderr.write(`> ${cmd} ${args.join(' ')}\n`);
+    const result = spawnSync(cmd, args, { stdio: 'inherit' });
+    if (result.status !== 0) {
+      fail(new Error(`Command failed (exit ${result.status ?? 'signal'}): ${cmd} ${args.join(' ')}`));
+    }
+  }
+
+  if (!options.quiet) {
+    process.stdout.write(
+      '\nInstalled the xctl plugin.\nNext steps:\n' +
+        `  1. ${CLI_NAME} auth login\n` +
+        '  2. restart Claude Code and run /mcp to confirm the server is connected\n',
+    );
+  }
+}
+
 program
   .command('install')
   .description('Install the Claude Code plugin from this repository\'s marketplace')
@@ -490,71 +566,78 @@ program
   .option('--marketplace <owner/repo>', 'GitHub repo hosting .claude-plugin/marketplace.json', DEFAULT_MARKETPLACE)
   .option('--dry-run', 'print the commands without running them')
   .action(async (opts) => {
-    const marketplace = String(opts.marketplace);
-    if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(marketplace)) {
-      fail(new Error('--marketplace must look like owner/repo'));
-    }
-    const agent = String(opts.agent);
-    const scope = String(opts.scope);
-    if (!['user', 'project', 'local'].includes(scope)) {
-      fail(new Error('--scope must be user, project or local'));
-    }
-
-    if (agent !== 'claude') {
-      process.stdout.write(
-        `For ${agent}, add this to its MCP configuration:\n\n` +
-          JSON.stringify(
-            {
-              mcpServers: {
-                xctl: {
-                  command: 'npx',
-                  args: ['-y', '--package', 'x-mcp-automation', 'xctl-mcp'],
-                  env: { XCTL_SPEND_CAP: '5' },
-                },
-              },
-            },
-            null,
-            2,
-          ) +
-          '\n',
-      );
-      return;
-    }
-
-    const commands: Array<[string, string[]]> = [
-      [claudeBinary(), ['plugin', 'marketplace', 'add', marketplace]],
-      [claudeBinary(), ['plugin', 'install', 'xctl@xctl-marketplace', '--scope', scope]],
-    ];
-
-    if (opts.dryRun) {
-      for (const [cmd, args] of commands) process.stdout.write(`${cmd} ${args.join(' ')}\n`);
-      return;
-    }
-
-    const probe = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
-    if (probe.error) {
-      fail(
-        new Error(
-          'The claude CLI was not found on PATH. Install Claude Code first, or add the server manually with ' +
-            '`claude mcp add --transport stdio x -- xctl-mcp`.',
-        ),
-      );
-    }
-
-    for (const [cmd, args] of commands) {
-      process.stderr.write(`> ${cmd} ${args.join(' ')}\n`);
-      const result = spawnSync(cmd, args, { stdio: 'inherit' });
-      if (result.status !== 0) {
-        fail(new Error(`Command failed (exit ${result.status ?? 'signal'}): ${cmd} ${args.join(' ')}`));
-      }
-    }
-
-    process.stdout.write(
-      '\nInstalled the xctl plugin.\nNext steps:\n' +
-        `  1. ${CLI_NAME} auth login\n` +
-        '  2. restart Claude Code and run /mcp to confirm the server is connected\n',
-    );
+    await installClaudePlugin({
+      agent: String(opts.agent),
+      scope: String(opts.scope),
+      marketplace: String(opts.marketplace),
+      ...(opts.dryRun ? { dryRun: true } : {}),
+    });
   });
+
+interface Check {
+  name: string;
+  ok: boolean;
+  detail: string;
+}
+
+async function collectChecks(profile: string): Promise<Check[]> {
+  const config = await loadConfig();
+  const store = await openSecretStore();
+  const tokens = await getJson<OAuthTokens>(store, oauthKey(profile));
+  const cookies = await getJson<Record<string, string>>(store, cookieKey(profile));
+
+  let queryCache: { exists: boolean; ageHours: number | null } = { exists: false, ageHours: null };
+  try {
+    const info = await stat(paths.queryIds());
+    queryCache = { exists: true, ageHours: Math.round((Date.now() - info.mtimeMs) / 36_000) / 100 };
+  } catch {
+    /* not cached */
+  }
+
+  const claude = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
+  const nodeMajor = Number(process.versions.node.split('.')[0]);
+
+  return [
+    { name: 'node', ok: nodeMajor >= 24, detail: process.versions.node },
+    { name: 'secret_store', ok: true, detail: store.kind },
+    {
+      name: 'oauth',
+      ok: Boolean(tokens),
+      detail: tokens
+        ? `expires ${new Date(tokens.expiresAt).toISOString()}${tokens.refreshToken ? ', refreshable' : ''}`
+        : 'not signed in',
+    },
+    {
+      name: 'cookies',
+      ok: Boolean(cookies),
+      detail: cookies ? `${Object.keys(cookies).length} cookies` : 'not imported',
+    },
+    { name: 'unofficial', ok: true, detail: config.unofficial.enabled ? 'enabled' : 'disabled' },
+    {
+      name: 'query_ids',
+      ok: !config.unofficial.enabled || queryCache.exists,
+      detail: queryCache.exists ? `cached ${queryCache.ageHours}h ago` : 'not cached',
+    },
+    {
+      name: 'claude_cli',
+      ok: !claude.error,
+      detail: claude.error ? 'not found' : String(claude.stdout).trim(),
+    },
+    { name: 'config', ok: true, detail: paths.config() },
+    { name: 'profile', ok: true, detail: profile },
+  ];
+}
+
+function printChecks(profile: string, checks: Check[], json: boolean): void {
+  if (json) {
+    process.stdout.write(JSON.stringify({ profile, checks }, null, 2) + '\n');
+    return;
+  }
+  for (const check of checks) {
+    process.stdout.write(`${check.ok ? 'ok  ' : 'FAIL'}  ${check.name.padEnd(13)} ${check.detail}\n`);
+  }
+  if (checks.some((check) => !check.ok)) process.exitCode = 1;
+}
 
 program
   .command('doctor')
@@ -564,60 +647,116 @@ program
     const globals = command.optsWithGlobals() as { profile?: string };
     const config = await loadConfig();
     const profile = resolveProfileName(config, globals.profile);
-    const store = await openSecretStore();
-    const tokens = await getJson<OAuthTokens>(store, oauthKey(profile));
-    const cookies = await getJson<Record<string, string>>(store, cookieKey(profile));
+    const checks = await collectChecks(profile);
+    printChecks(profile, checks, Boolean(opts.json));
+  });
 
-    let queryCache: { exists: boolean; ageHours: number | null } = { exists: false, ageHours: null };
-    try {
-      const info = await stat(paths.queryIds());
-      queryCache = { exists: true, ageHours: Math.round((Date.now() - info.mtimeMs) / 36_000) / 100 };
-    } catch {
-      /* not cached */
-    }
+/* --------------------------------------------------- setup / uninstall */
 
-    const claude = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
-    const nodeMajor = Number(process.versions.node.split('.')[0]);
+async function needsLogin(profile: string): Promise<boolean> {
+  if (process.env['X_USER_TOKEN'] || process.env['X_BEARER_TOKEN'] || process.env['XCTL_TOKEN']) {
+    return false;
+  }
+  const store = await openSecretStore();
+  const tokens = await getJson<OAuthTokens>(store, oauthKey(profile));
+  if (!tokens) return true;
+  return tokens.expiresAt <= Date.now() && !tokens.refreshToken;
+}
 
-    const checks = [
-      { name: 'node', ok: nodeMajor >= 24, detail: process.versions.node },
-      { name: 'secret_store', ok: true, detail: store.kind },
-      {
-        name: 'oauth',
-        ok: Boolean(tokens),
-        detail: tokens
-          ? `expires ${new Date(tokens.expiresAt).toISOString()}${tokens.refreshToken ? ', refreshable' : ''}`
-          : 'not signed in',
-      },
-      {
-        name: 'cookies',
-        ok: Boolean(cookies),
-        detail: cookies ? `${Object.keys(cookies).length} cookies` : 'not imported',
-      },
-      { name: 'unofficial', ok: true, detail: config.unofficial.enabled ? 'enabled' : 'disabled' },
-      {
-        name: 'query_ids',
-        ok: !config.unofficial.enabled || queryCache.exists,
-        detail: queryCache.exists ? `cached ${queryCache.ageHours}h ago` : 'not cached',
-      },
-      {
-        name: 'claude_cli',
-        ok: !claude.error,
-        detail: claude.error ? 'not found' : String(claude.stdout).trim(),
-      },
-      { name: 'config', ok: true, detail: paths.config() },
-      { name: 'profile', ok: true, detail: profile },
-    ];
+function runLoginSubprocess(profile: string): number {
+  const entry = process.argv[1];
+  if (!entry) return 1;
+  const result = spawnSync(process.execPath, [entry, 'auth', 'login', '--profile', profile], {
+    stdio: 'inherit',
+  });
+  return result.status ?? 1;
+}
 
-    if (opts.json) {
-      process.stdout.write(JSON.stringify({ profile, checks }, null, 2) + '\n');
+program
+  .command('setup')
+  .description('Sign in, install the Claude Code plugin, then check the setup')
+  .option('--agent <agent>', 'claude, or none', 'claude')
+  .option('--scope <scope>', 'user, project or local', 'user')
+  .option('--marketplace <owner/repo>', 'GitHub repo hosting the marketplace', DEFAULT_MARKETPLACE)
+  .option('--skip-auth', 'do not start the OAuth login')
+  .option('--dry-run', 'print what would happen')
+  .action(async (opts, command: Command) => {
+    const globals = command.optsWithGlobals() as { profile?: string };
+    const config = await loadConfig();
+    const profile = resolveProfileName(config, globals.profile);
+    const agent = String(opts.agent);
+
+    if (opts.dryRun) {
+      process.stdout.write(`profile: ${profile}\n`);
+      if (!opts.skipAuth) process.stdout.write('would sign in if no token is stored\n');
+      if (agent !== 'none') process.stdout.write(`would install the ${agent} plugin\n`);
+      process.stdout.write('would run: doctor\n');
       return;
     }
 
-    for (const check of checks) {
-      process.stdout.write(`${check.ok ? 'ok  ' : 'FAIL'}  ${check.name.padEnd(13)} ${check.detail}\n`);
+    if (!opts.skipAuth && (await needsLogin(profile))) {
+      process.stderr.write('Signing in to X (a browser window will open)...\n');
+      const code = runLoginSubprocess(profile);
+      if (code !== 0) {
+        process.stderr.write('warning: sign-in did not complete. Run `xctl auth login` when ready.\n');
+      }
     }
-    if (checks.some((check) => !check.ok)) process.exitCode = 1;
+
+    if (agent !== 'none') {
+      await installClaudePlugin({
+        agent,
+        scope: String(opts.scope),
+        marketplace: String(opts.marketplace),
+        quiet: true,
+      });
+    }
+
+    const checks = await collectChecks(profile);
+    printChecks(profile, checks, false);
+  });
+
+program
+  .command('uninstall')
+  .description('Remove the Claude Code plugin and optionally stored credentials')
+  .option('--agent <agent>', 'claude, or none', 'claude')
+  .option('--purge', 'also delete stored OAuth tokens and cookies for the active profile')
+  .option('--dry-run', 'print the commands without running them')
+  .action(async (opts, command: Command) => {
+    const globals = command.optsWithGlobals() as { profile?: string };
+    const config = await loadConfig();
+    const profile = resolveProfileName(config, globals.profile);
+
+    const commands: Array<[string, string[]]> = [];
+    if (String(opts.agent) === 'claude') {
+      commands.push([claudeBinary(), ['plugin', 'uninstall', 'xctl@xctl-marketplace']]);
+      commands.push([claudeBinary(), ['plugin', 'marketplace', 'remove', 'xctl-marketplace']]);
+    }
+
+    if (opts.dryRun) {
+      for (const [cmd, args] of commands) process.stdout.write(`${cmd} ${args.join(' ')}\n`);
+      if (opts.purge) process.stdout.write(`would delete credentials for profile "${profile}"\n`);
+    } else {
+      for (const [cmd, args] of commands) {
+        process.stderr.write(`> ${cmd} ${args.join(' ')}\n`);
+        const result = spawnSync(cmd, args, { stdio: 'inherit' });
+        if (result.status !== 0) {
+          process.stderr.write('warning: that command failed; it may already be removed.\n');
+        }
+      }
+      if (opts.purge) {
+        const store = await openSecretStore();
+        await store.delete(oauthKey(profile));
+        await store.delete(cookieKey(profile));
+        process.stdout.write(`Deleted stored tokens and cookies for "${profile}".\n`);
+      }
+    }
+
+    process.stdout.write(
+      '\nTo remove the command itself:\n' +
+        '  npm uninstall -g x-mcp-automation\n' +
+        '  pipx uninstall x-mcp-automation\n' +
+        `Local config and state remain in: ${paths.home()}\n`,
+    );
   });
 
 /* ------------------------------------------------------------ unofficial */
