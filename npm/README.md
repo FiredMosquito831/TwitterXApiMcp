@@ -2,6 +2,8 @@
 
 CLI and MCP server for your own X account. 60 operations: posts, threads, media, DMs, bookmarks, lists, analytics, trends, Spaces/Communities reads, Articles — plus an explicitly opt-in unofficial transport for likes, follows, profile edits and pinned posts.
 
+**Site:** <https://x-mcp-automation.danubelabs.net/> · **Docs:** <https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs>
+
 > Node.js **≥ 24** required.
 
 ## Install
@@ -60,6 +62,17 @@ This adds the `xctl-marketplace` and installs the `xctl` plugin. Or manually:
 /plugin marketplace add FiredMosquito831/TwitterXApiMcp
 /plugin install xctl@xctl-marketplace
 ```
+
+## Other agents and project scopes
+
+```bash
+xctl install all                 # every agent found on PATH
+xctl install all --scope project
+xctl install codex opencode
+xctl uninstall all
+```
+
+Claude Code and Codex support global and project scopes; opencode writes JSON config and a skill; Antigravity (`agy`) is global only. Per-install records live under `~/.xctl/state`.
 
 ## The unofficial transport
 

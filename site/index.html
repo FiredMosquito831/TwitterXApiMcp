@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>xctl — X account CLI, MCP server and Claude Code plugin</title>
+  <meta name="description" content="Control your own X account from the terminal or an AI agent. 60 operations, 51 MCP tools, official API first, with an explicit opt-in unofficial transport.">
+  <link rel="canonical" href="https://x-mcp-automation.danubelabs.net/">
+  <meta name="theme-color" content="#08090c">
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="author" content="FiredMosquito831">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="xctl">
+  <meta property="og:title" content="xctl — X account CLI, MCP server and Claude Code plugin">
+  <meta property="og:description" content="60 operations, 51 MCP tools, official API first. Control your own X account from the terminal or any agent.">
+  <meta property="og:url" content="https://x-mcp-automation.danubelabs.net/">
+  <meta property="og:image" content="https://x-mcp-automation.danubelabs.net/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="xctl terminal window installing x-mcp-automation">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="xctl — X account CLI, MCP server and Claude Code plugin">
+  <meta name="twitter:description" content="60 operations, 51 MCP tools, official API first. Control your own X account from the terminal or any agent.">
+  <meta name="twitter:image" content="https://x-mcp-automation.danubelabs.net/og.png">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/app.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "xctl",
+    "alternateName": "x-mcp-automation",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "description": "CLI and MCP server for your own X account: posts, threads, media, DMs, bookmarks, lists, analytics, plus an explicit opt-in unofficial transport.",
+    "url": "https://x-mcp-automation.danubelabs.net/",
+    "codeRepository": "https://github.com/FiredMosquito831/TwitterXApiMcp",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "downloadUrl": "https://www.npmjs.com/package/x-mcp-automation",
+    "softwareVersion": "0.2.1",
+    "author": { "@type": "Person", "name": "FiredMosquito831", "url": "https://github.com/FiredMosquito831" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="xctl home">
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <span class="brand-name">xctl</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#limits">Limits</a>
+      <a href="#install">Install</a>
+      <a href="#safety">Safety</a>
+      <a class="nav-gh" href="https://github.com/FiredMosquito831/TwitterXApiMcp">GitHub</a>
+      <button class="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <p class="eyebrow">MCP server · CLI · Claude Code plugin</p>
+      <h1>Your X account,<br><span class="accent">from the terminal.</span></h1>
+      <p class="lede">
+        Post, thread, upload media, read timelines and DMs, manage bookmarks and lists, and check analytics —
+        through one typed operation registry that powers a CLI, an MCP server and agent plugins.
+      </p>
+
+      <div class="install-line">
+        <code id="install-command">npm install -g x-mcp-automation</code>
+        <button class="copy" type="button" data-copy="npm install -g x-mcp-automation" aria-label="Copy install command">Copy</button>
+      </div>
+
+      <div class="cta-row">
+        <a class="button primary" href="#install">Install</a>
+        <a class="button" href="https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs">Read the docs</a>
+      </div>
+
+      <ul class="stats" aria-label="At a glance">
+        <li><strong>60</strong><span>operations</span></li>
+        <li><strong>51</strong><span>MCP tools</span></li>
+        <li><strong>4</strong><span>agent adapters</span></li>
+        <li><strong>0</strong><span>bulk verbs</span></li>
+      </ul>
+    </section>
+
+    <section class="terminal-wrap" aria-label="Example session">
+      <div class="terminal">
+        <div class="terminal-bar"><span></span><span></span><span></span><em>zsh — xctl</em></div>
+<pre><code><span class="prompt">$</span> npm install -g x-mcp-automation
+<span class="dim">added 3 packages in 1s</span>
+
+<span class="prompt">$</span> xctl setup
+<span class="dim">Signing in to X (a browser window will open)...</span>
+<span class="ok">ok</span>  oauth        expires 2026-10-21T22:40:00Z, refreshable
+<span class="ok">ok</span>  claude       plugin (global) installed
+<span class="ok">ok</span>  codex        plugin (global) installed
+<span class="ok">ok</span>  opencode     global mcp C:\Users\you\.config\opencode\opencode.json
+<span class="dim">Next: restart your agent and run /mcp.</span>
+
+<span class="prompt">$</span> xctl posts create --text "hello from the terminal" --dry-run
+{"id":null,"text":"hello from the terminal","cost_usd":0.015,"dry_run":true}</code></pre>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="section-head">
+        <h2>One registry, every surface</h2>
+        <p>Every operation is defined once with a zod schema. The CLI, the MCP server and the SDK are projections of the same definition.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <div class="icon" aria-hidden="true">✎</div>
+          <h3>Posts and threads</h3>
+          <p>Create, edit, delete, thread, poll, quote reads, hide replies, repost. Media upload with alt text and chunked video.</p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">◫</div>
+          <h3>Reads and analytics</h3>
+          <p>Home, user and mention timelines, recent and full-archive search, post metrics, engagement summaries, usage and credits.</p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">✉</div>
+          <h3>DMs and bookmarks</h3>
+          <p>Send and read direct messages, list conversations, manage bookmarks, lists, members, blocks and mutes.</p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">◷</div>
+          <h3>Long-form and discovery</h3>
+          <p>Articles draft and publish, trending topics, Spaces and Communities reads, X News, liked and quote-post reads.</p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">⌘</div>
+          <h3>Works with your agent</h3>
+          <p>Claude Code plugin with a skill and slash commands, plus installers for Codex, opencode and Google Antigravity.</p>
+        </article>
+        <article class="card">
+          <div class="icon" aria-hidden="true">⚙</div>
+          <h3>Built for restraint</h3>
+          <p>Spend caps, a 30-second duplicate guard, header-seeded rate buckets and no batch or engagement-farming verbs.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="limits" class="section">
+      <div class="section-head">
+        <h2>Official first. Honest about the rest.</h2>
+        <p>X removed a lot in 2026. The project does not pretend otherwise.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Official API</th><th>In xctl</th></tr></thead>
+          <tbody>
+            <tr><td>Post, thread, poll, media, edit, delete</td><td class="yes">Works</td><td>Official</td></tr>
+            <tr><td>DMs, bookmarks, lists, reads, analytics</td><td class="yes">Works</td><td>Official</td></tr>
+            <tr><td>Reply</td><td class="warn">Summoned only</td><td>Submits; X may return 403</td></tr>
+            <tr><td>Quote post</td><td class="no">Enterprise</td><td>Unofficial, opt-in</td></tr>
+            <tr><td>Like / follow</td><td class="no">Removed</td><td>Unofficial, one target, opt-in</td></tr>
+            <tr><td>Profile edit, avatar, banner, pinned post</td><td class="no">No endpoint</td><td>Unofficial, opt-in</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fineprint">
+        The unofficial transport uses your logged-in browser session against private endpoints. X prohibits this and may permanently
+        suspend the account. It is off by default and every action requires an explicit confirmation.
+      </p>
+    </section>
+
+    <section id="install" class="section">
+      <div class="section-head">
+        <h2>Install in one command</h2>
+        <p>Node.js 24 or newer. The npm package bundles every JavaScript dependency.</p>
+      </div>
+
+      <div class="grid install-grid">
+        <article class="card install-card">
+          <h3>npm</h3>
+          <pre><code>npm install -g x-mcp-automation
+xctl setup</code></pre>
+          <p class="muted">Bins: <code>xctl</code>, <code>xctl-mcp</code>, and the aliases <code>x</code>, <code>x-mcp</code>.</p>
+        </article>
+        <article class="card install-card">
+          <h3>npx, no global install</h3>
+          <pre><code>npx -y x-mcp-automation setup</code></pre>
+          <p class="muted">The Claude Code plugin ships its own server bundle.</p>
+        </article>
+        <article class="card install-card">
+          <h3>PyPI / pipx</h3>
+          <pre><code>pipx install x-mcp-automation
+xctl setup</code></pre>
+          <p class="muted">A launcher; Node.js 24 is still required.</p>
+        </article>
+      </div>
+
+      <div class="agents">
+        <h3>Agents and scopes</h3>
+        <p>Install for every agent found on PATH, or choose targets and a scope.</p>
+        <pre><code>xctl install all
+xctl install all --scope project
+xctl install codex opencode
+xctl uninstall all</code></pre>
+        <p class="muted">Claude Code and Codex support global and project scopes. opencode writes JSON config. Antigravity is global only.</p>
+      </div>
+    </section>
+
+    <section id="safety" class="section">
+      <div class="section-head">
+        <h2>Guardrails, not promises</h2>
+      </div>
+      <ul class="safety-list">
+        <li><strong>Spend cap.</strong> <code>XCTL_SPEND_CAP</code> (default $5) refuses operations that would cross it. Link posts are priced at $0.20, not $0.015, before they run.</li>
+        <li><strong>No bulk actions.</strong> There is no like-many, follow-all or keyword auto-reply. One target per invocation by design.</li>
+        <li><strong>Confirmations.</strong> Writes are marked destructive and non-idempotent. Unofficial actions need an explicit flag every time.</li>
+        <li><strong>Credentials.</strong> OAuth 2.0 PKCE with refresh rotation, stored in the OS keychain, with a user-scoped file fallback.</li>
+        <li><strong>Rate limits.</strong> Buckets are seeded from X's own headers and persisted per profile, not guessed.</li>
+      </ul>
+    </section>
+
+    <section class="section links-section">
+      <h2>Documentation</h2>
+      <div class="doc-links">
+        <a href="https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs/INSTALL.md">Install guide</a>
+        <a href="https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs/PACKAGING.md">Packaging and releases</a>
+        <a href="https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs/PLAN.md">Decision record</a>
+        <a href="https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs/research">Research reports</a>
+        <a href="https://www.npmjs.com/package/x-mcp-automation">npm</a>
+        <a href="https://pypi.org/project/x-mcp-automation/">PyPI</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <span>xctl · Apache-2.0 · built by <a href="https://github.com/FiredMosquito831">FiredMosquito831</a></span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/FiredMosquito831/TwitterXApiMcp">Source</a>
+      <a href="https://github.com/FiredMosquito831/TwitterXApiMcp/issues">Issues</a>
+      <a href="/sitemap.xml">Sitemap</a>
+    </div>
+  </footer>
+</body>
+</html>

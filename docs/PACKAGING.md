@@ -119,6 +119,18 @@ Versions are immutable on both registries. A bad release gets a new version; nev
 - wheel build, install into a clean venv, `xctl ops` returns 49, and `xctl-mcp` completes an MCP initialize handshake;
 - the plugin's vendored server exists.
 
+## Site (GitHub Pages)
+
+`site/` is a dependency-free static page published by `.github/workflows/pages.yml`:
+
+- Push changes under `site/` to `main`, or run the workflow manually.
+- Pages source must be **GitHub Actions** (Settings → Pages).
+- Custom domain: `x-mcp-automation.danubelabs.net`. `site/CNAME` records it; the Pages settings must match.
+- DNS lives at Cloudflare: a **DNS-only** CNAME `x-mcp-automation` → `firedmosquito831.github.io` (the same pattern as the other `*.danubelabs.net` GitHub Pages sites).
+- HTTPS is provisioned by GitHub after DNS resolves; enable “Enforce HTTPS” once the certificate is issued.
+
+SEO assets included: canonical URL, Open Graph and Twitter cards, a generated 1200×630 `og.png` (`python scripts/make-og.py`), JSON-LD `SoftwareApplication`, `robots.txt`, `sitemap.xml`, `llms.txt`, semantic headings and a 404 page.
+
 ## Manual fallback
 
 ```bash

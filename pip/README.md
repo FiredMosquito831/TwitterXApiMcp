@@ -2,6 +2,8 @@
 
 Launcher package for **xctl**, a CLI and MCP server for your own X account. It installs the `xctl` and `xctl-mcp` commands and runs the bundled Node.js application.
 
+**Site:** <https://x-mcp-automation.danubelabs.net/> · **Docs:** <https://github.com/FiredMosquito831/TwitterXApiMcp/tree/main/docs>
+
 > **Requires Node.js 24 or newer.** The Python package is only a launcher; the application is Node.js. Install Node from <https://nodejs.org/> (or `winget install OpenJS.NodeJS.LTS` on Windows).
 
 ## Install

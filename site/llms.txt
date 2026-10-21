@@ -1,0 +1,27 @@
+# xctl (x-mcp-automation)
+
+> CLI, MCP server and agent plugins for controlling your own X account. 60 operations, 51 MCP tools, official API first, with an explicit opt-in unofficial transport.
+
+## What it is
+
+xctl is a Node.js 24+ tool with one typed operation registry. The registry projects into a CLI (`xctl`), an MCP server (`xctl-mcp`), and installers for Claude Code, Codex, opencode and Google Antigravity. It covers posts, threads, media, DMs, bookmarks, lists, analytics, Articles, trends, Spaces and Communities reads.
+
+## Install
+
+- npm: `npm install -g x-mcp-automation` then `xctl setup`
+- npx: `npx -y x-mcp-automation setup`
+- PyPI: `pipx install x-mcp-automation` then `xctl setup` (Node.js 24 is still required)
+- Claude Code plugin marketplace: `FiredMosquito831/TwitterXApiMcp`, plugin `xctl@xctl-marketplace`
+
+## Important limits
+
+X's self-serve API does not support likes, follows, quote posts, profile edits or pinned posts in 2026. Replies only work when the author summoned the account. The project exposes those missing actions through an explicit opt-in unofficial transport that X prohibits; it is off by default and may result in account suspension.
+
+## Links
+
+- Site: https://x-mcp-automation.danubelabs.net/
+- Source: https://github.com/FiredMosquito831/TwitterXApiMcp
+- Install guide: https://github.com/FiredMosquito831/TwitterXApiMcp/blob/main/docs/INSTALL.md
+- Packaging: https://github.com/FiredMosquito831/TwitterXApiMcp/blob/main/docs/PACKAGING.md
+- npm: https://www.npmjs.com/package/x-mcp-automation
+- PyPI: https://pypi.org/project/x-mcp-automation/

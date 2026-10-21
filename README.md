@@ -1,6 +1,14 @@
 # xctl
 
+[![npm version](https://img.shields.io/npm/v/x-mcp-automation?label=npm)](https://www.npmjs.com/package/x-mcp-automation)
+[![CI](https://github.com/FiredMosquito831/TwitterXApiMcp/actions/workflows/ci.yml/badge.svg)](https://github.com/FiredMosquito831/TwitterXApiMcp/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-server-6f42c1)](https://modelcontextprotocol.io)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](https://github.com/FiredMosquito831/TwitterXApiMcp)
+
 A terminal control plane for **your own** X account: a CLI, a typed SDK layer, and an MCP server generated from one operation registry.
+
+**Site:** <https://x-mcp-automation.danubelabs.net/> · **npm:** [`x-mcp-automation`](https://www.npmjs.com/package/x-mcp-automation) · **PyPI:** [`x-mcp-automation`](https://pypi.org/project/x-mcp-automation/)
 
 **60 operations** · 49 official-API · 11 unofficial (opt-in) · 51 MCP tools by default
 
@@ -266,19 +274,27 @@ If X changes its bundle layout, `x unofficial refresh` re-scans the operation ta
 packages/core         transport, OAuth, credentials, config, state, rate limiter, spend meter
 packages/ops          the operation registry — the single source of truth (49 official ops)
 packages/unofficial   cookie session, bundle parser, transaction-id generator (11 ops)
-packages/cli          commander front-end over the registry
+packages/cli          commander front-end over the registry + per-agent harness adapters
 packages/mcp          MCP v2 server over the registry
 
+site/                 static site published to GitHub Pages
 npm/                  publishable package (bundled CLI + MCP, bins xctl/xctl-mcp)
 pip/                  PyPI launcher (vendors the same bundles)
 plugins/xctl/         Claude Code plugin (manifest, vendored server, skill, commands)
 .claude-plugin/       marketplace catalogue
-.github/workflows/    npm and PyPI trusted-publishing workflows
+.github/workflows/    ci, npm, pypi and pages
 
-scripts/              tests, structural checks, package builder
+scripts/              tests, structural checks, package builder, OG image
 docs/research/        six dated research reports with sources
 docs/PLAN.md          decision record, capability matrix, roadmap, risk register
 ```
+
+## Documentation
+
+- [Install](docs/INSTALL.md) — every channel, scopes, agents, updating, troubleshooting
+- [Packaging and releases](docs/PACKAGING.md) — npm/PyPI/plugin release flow
+- [Plan](docs/PLAN.md) — decisions, capability matrix, roadmap, risks
+- [Research](docs/research/) — six dated reports on X's API, libraries, MCPs, private endpoints, browser automation and architecture
 
 ## Tests
 

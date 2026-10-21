@@ -217,6 +217,8 @@ Additional: local scheduling queue (`x queue add/list/run/remove`), multi-profil
 
 **Distribution (added after the build):** one npm package (`x-mcp-automation`) and one PyPI launcher with the same name, both bundling the same two Node entry points; a Claude Code plugin (`xctl`) with a vendored MCP server, a skill and slash commands; a marketplace catalogue at `.claude-plugin/marketplace.json`; an `xctl install` command that adds the marketplace and installs the plugin; and OIDC publishing workflows for npm and PyPI. See `docs/PACKAGING.md` and `docs/INSTALL.md`.
 
+**Current state (2026-10-21):** npm `x-mcp-automation@0.2.1` is live and published by CI with provenance. Multi-agent scoped installs cover Claude Code, Codex, opencode and Antigravity. GitHub release `v0.1.1` carries the wheel; PyPI publishing is configured but disabled until the project's pending publisher exists and `PUBLISH_PYPI=true`. The static site in `site/` deploys through GitHub Pages at `x-mcp-automation.danubelabs.net`.
+
 ### Verification
 
 `npm test` passes: core primitives, operation request shapes, thread rollback, registry invariants, MCP handshake and tool calls. 60 operations (49 official + 11 unofficial); 51 MCP tools by default, 62 with the unofficial transport enabled.
