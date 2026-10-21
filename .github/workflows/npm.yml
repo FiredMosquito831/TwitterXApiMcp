@@ -100,12 +100,12 @@ jobs:
         run: |
           NAME=$(node -p "require('./package.json').name")
           VERSION=$(node -p "require('./package.json').version")
-          # The registry can lag the publish response by a minute or two.
-          for attempt in 1 2 3 4 5 6; do
+          # The registry can lag the publish response by a few minutes.
+          for attempt in $(seq 1 30); do
             if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
               echo "$NAME@$VERSION is live on npm."
               exit 0
             fi
             sleep 10
           done
-          echo "::warning title=Not on npm::The workflow finished but $NAME@$VERSION is not on npm after 60 seconds. Check the publish log above."
+          echo "::warning title=Not on npm::The workflow finished but $NAME@$VERSION is not on npm after 5 minutes. Check the publish log above."
