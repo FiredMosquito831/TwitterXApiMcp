@@ -8,6 +8,8 @@ name: npm
 # One-time setup on npmjs.com: package x-mcp-automation -> Settings ->
 # Trusted publisher -> GitHub Actions -> owner FiredMosquito831,
 # repo TwitterXApiMcp, workflow filename npm.yml, environment empty.
+# Then enable publishing for this repository:
+#   gh variable set PUBLISH_NPM --body true
 
 on:
   push:
@@ -40,6 +42,7 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Publish the version if it is new
+        if: vars.PUBLISH_NPM == 'true'
         working-directory: npm
         run: |
           NAME=$(node -p "require('./package.json').name")
@@ -49,3 +52,9 @@ jobs:
           else
             npm publish --provenance --access public
           fi
+
+      - name: Publishing is not enabled
+        if: vars.PUBLISH_NPM != 'true'
+        run: |
+          echo "Build succeeded; publish skipped."
+          echo "Configure the npm trusted publisher, then run: gh variable set PUBLISH_NPM --body true"

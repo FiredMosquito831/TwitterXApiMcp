@@ -7,6 +7,8 @@ name: pypi
 # One-time setup on pypi.org: project x-mcp-automation -> Publishing ->
 # Add a trusted publisher -> GitHub -> owner FiredMosquito831,
 # repo TwitterXApiMcp, workflow pypi.yml, environment pypi.
+# Then enable publishing for this repository:
+#   gh variable set PUBLISH_PYPI --body true
 
 on:
   push:
@@ -49,6 +51,7 @@ jobs:
 
   publish:
     needs: build
+    if: vars.PUBLISH_PYPI == 'true'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
