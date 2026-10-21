@@ -16,10 +16,11 @@
     "x": "node packages/cli/dist/index.js",
     "mcp": "node packages/mcp/dist/index.js",
     "verify": "node scripts/verify-registry.mjs",
+    "verify:versions": "node scripts/verify-versions.mjs",
     "smoke:mcp": "node scripts/mcp-smoke.mjs",
     "package:build": "npm run build && node scripts/build-npm.mjs",
     "package:pack": "npm run package:build && cd npm && npm pack",
-    "test": "npm run build && node scripts/test-core.mjs && node scripts/test-ops.mjs && node scripts/verify-registry.mjs && node scripts/mcp-smoke.mjs && node scripts/test-mcp.mjs"
+    "test": "npm run build && node scripts/test-core.mjs && node scripts/test-ops.mjs && node scripts/verify-registry.mjs && node scripts/verify-versions.mjs && node scripts/mcp-smoke.mjs && node scripts/test-mcp.mjs"
   },
   "devDependencies": {
     "@napi-rs/keyring": "^2.1.2",

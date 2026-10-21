@@ -23,6 +23,7 @@ node scripts/test-mcp.mjs         # operations_search / operations_invoke
 
 npm run package:build             # bundles for npm/, plugin server, pip/ vendor
 npm run package:pack              # build + npm pack inside npm/
+node scripts/verify-versions.mjs  # npm/pip/plugin/marketplace + optional TAG must agree
 node npm/bin/xctl.mjs --help      # test the bundled CLI
 MCP_ENTRY=npm/dist/mcp.mjs node scripts/mcp-smoke.mjs
 MCP_ENTRY=plugins/xctl/servers/xctl.mjs node scripts/mcp-smoke.mjs
@@ -48,7 +49,7 @@ Three artifacts are built from the same source by `scripts/build-npm.mjs`:
 - **`pip/`** — `x-mcp-automation` launcher (hatchling). It vendors the same `cli.mjs`/`mcp.mjs` (gitignored) and requires Node 24 at runtime.
 - **`plugins/xctl/`** — Claude Code plugin. `servers/xctl.mjs` is the vendored MCP bundle and **is committed**, because plugins install from a git ref.
 
-`npm/package.json` is the single version source; the build script writes that version into the marketplace, plugin manifest and `pyproject.toml`. `xctl install` runs `claude plugin marketplace add` + `plugin install`. See `docs/PACKAGING.md`.
+`npm/package.json` is the single version source; the build script writes that version into the marketplace, plugin manifest and `pyproject.toml`, and `scripts/verify-versions.mjs` fails CI on drift. `xctl install` runs `claude plugin marketplace add` + `plugin install`. Publishing: `npm.yml` fires on a published release, on a version bump pushed to `main`, or manually with a tag; `pypi.yml` builds and attaches the wheel and publishes only when `PUBLISH_PYPI=true`. See `docs/PACKAGING.md`.
 
 ## Invariants to preserve
 

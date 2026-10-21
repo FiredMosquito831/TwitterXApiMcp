@@ -1,31 +1,49 @@
 name: npm
 
-# Publishes the package in npm/ on every push to main that changes it.
-# Uses npm trusted publishing (OIDC), so no token is stored in GitHub.
-# Publishes only when the version in npm/package.json is not already on npm:
-# bump "version" there to release.
+# Publishes x-mcp-automation to npm in two situations:
+#   1. a GitHub release is published (the tag must match npm/package.json), or
+#   2. npm/package.json is pushed to main with a version that is not on npm yet.
+# A manual run can publish an existing tag.
 #
 # One-time setup on npmjs.com: package x-mcp-automation -> Settings ->
-# Trusted publisher -> GitHub Actions -> owner FiredMosquito831,
-# repo TwitterXApiMcp, workflow filename npm.yml, environment empty.
-# Then enable publishing for this repository:
-#   gh variable set PUBLISH_NPM --body true
+# Trusted Publisher -> GitHub Actions, exactly:
+#   Organization or user: FiredMosquito831
+#   Repository:           TwitterXApiMcp
+#   Workflow filename:    npm.yml
+#   Environment:          (leave EMPTY)
+#
+# Until that is configured the publish step prints a warning and the run stays
+# green; once configured, the next release or version bump publishes for real.
 
 on:
+  release:
+    types: [published]
   push:
     branches: [main]
-    paths: ["npm/**", "packages/**", "scripts/build-npm.mjs", ".github/workflows/npm.yml"]
+    paths:
+      - "npm/package.json"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish, for example v0.1.0
+        required: false
 
 permissions:
   contents: read
   id-token: write
+
+# One publish per tag/ref, never cancelled: an interrupted publish is not idempotent.
+concurrency:
+  group: npm-publish-${{ github.event.release.tag_name || inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -38,23 +56,51 @@ jobs:
       - name: Build the bundled package and plugin server
         run: npm run package:build
 
+      - name: Check that the tag and every manifest agree
+        run: |
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
+          if [ -n "$TAG" ]; then
+            TAG="$TAG" node scripts/verify-versions.mjs
+          else
+            node scripts/verify-versions.mjs
+          fi
+
       - name: Use a recent npm (trusted publishing needs 11.5.1+)
         run: npm install -g npm@latest
 
       - name: Publish the version if it is new
-        if: vars.PUBLISH_NPM == 'true'
+        working-directory: npm
+        run: |
+          set -o pipefail
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm; nothing to publish."
+            exit 0
+          fi
+
+          set +e
+          npm publish --provenance --access public 2>&1 | tee publish.log
+          STATUS=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$STATUS" -ne 0 ]; then
+            if grep -qiE "ENEEDAUTH|EOTP|not authorized|trusted publisher|403" publish.log; then
+              echo "::warning title=npm trusted publisher not configured::Configure it on npmjs.com (owner FiredMosquito831, repo TwitterXApiMcp, workflow npm.yml, environment empty), then re-run this workflow."
+              exit 0
+            fi
+            exit "$STATUS"
+          fi
+
+      - name: Report the published version
+        if: success()
         working-directory: npm
         run: |
           NAME=$(node -p "require('./package.json').name")
           VERSION=$(node -p "require('./package.json').version")
           if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
-            echo "$NAME@$VERSION is already on npm. Bump the version in npm/package.json to release."
+            echo "$NAME@$VERSION is live on npm."
           else
-            npm publish --provenance --access public
+            echo "::warning title=Not on npm::The workflow finished but $NAME@$VERSION is not on npm. Check the publish log above."
           fi
-
-      - name: Publishing is not enabled
-        if: vars.PUBLISH_NPM != 'true'
-        run: |
-          echo "Build succeeded; publish skipped."
-          echo "Configure the npm trusted publisher, then run: gh variable set PUBLISH_NPM --body true"
