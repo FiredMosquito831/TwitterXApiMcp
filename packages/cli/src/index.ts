@@ -497,13 +497,21 @@ program
   .option('--dry-run', 'show what would be installed')
   .action(async (targets: string[], opts) => {
     try {
+      const agentOpt = opts.agent ? String(opts.agent) : undefined;
       const names = targets.length
         ? targets
-        : opts.agent && String(opts.agent) !== 'none'
-          ? [String(opts.agent)]
+        : agentOpt
+          ? agentOpt === 'none'
+            ? []
+            : [agentOpt]
           : ['claude'];
       const scope = normalizeScope(String(opts.scope));
       const ctx = defaultCtx(String(opts.source));
+
+      if (!names.length) {
+        process.stdout.write('No agent selected; the CLI and MCP server are already installed.\n');
+        return;
+      }
 
       if (opts.dryRun) {
         for (const name of resolveTargets(names)) {
@@ -709,20 +717,26 @@ program
     const globals = command.optsWithGlobals() as { profile?: string };
     const config = await loadConfig();
     const profile = resolveProfileName(config, globals.profile);
-    const names = targets.length ? targets : opts.agent ? [String(opts.agent)] : ['all'];
+    const agentOpt = opts.agent ? String(opts.agent) : undefined;
+    const names = targets.length ? targets : agentOpt ? (agentOpt === 'none' ? [] : [agentOpt]) : ['all'];
     const scopeRaw = String(opts.scope).toLowerCase();
     const scope = scopeRaw === 'all' ? 'all' : normalizeScope(scopeRaw);
     const ctx = defaultCtx(String(opts.source));
 
     if (opts.dryRun) {
-      for (const name of resolveTargets(names)) {
-        process.stdout.write(`would uninstall ${name} at ${scope} scope\n`);
+      if (!names.length) process.stdout.write('No agent selected; nothing to uninstall.\n');
+      else {
+        for (const name of resolveTargets(names)) {
+          process.stdout.write(`would uninstall ${name} at ${scope} scope\n`);
+        }
       }
       if (opts.purge) process.stdout.write(`would delete credentials for profile "${profile}"\n`);
     } else {
-      const steps = await dispatch('uninstall', names, scope, ctx);
-      printSteps(steps);
-      if (steps.some((step) => step.status === 'error')) process.exitCode = 1;
+      if (names.length) {
+        const steps = await dispatch('uninstall', names, scope, ctx);
+        printSteps(steps);
+        if (steps.some((step) => step.status === 'error')) process.exitCode = 1;
+      }
 
       if (opts.purge) {
         const store = await openSecretStore();

@@ -1,7 +1,7 @@
 {
   "name": "xctl",
   "displayName": "X Control Plane",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Control your own X account from Claude Code: post, thread, upload media, read timelines and DMs, manage bookmarks and lists, view analytics. Official API first, with an explicit opt-in unofficial transport for likes, follows, profile edits and pinned posts.",
   "author": {
     "name": "FiredMosquito831"
