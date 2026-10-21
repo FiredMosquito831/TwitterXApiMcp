@@ -30,6 +30,9 @@
     "x": "bin/x.mjs",
     "x-mcp": "bin/x-mcp.mjs"
   },
+  "scripts": {
+    "prepublishOnly": "node ../scripts/verify-versions.mjs && node scripts/prepublish.mjs"
+  },
   "files": [
     "bin/",
     "dist/",
@@ -44,7 +47,6 @@
     "@napi-rs/keyring": "^2.1.2"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   }
 }

@@ -123,7 +123,9 @@ Versions are immutable on both registries. A bad release gets a new version; nev
 # npm
 cd npm
 npm pack --dry-run
-npm publish --access public --provenance
+npm publish --access public        # add --otp=<code> if prompted
+# Provenance is attached by CI (`npm publish --provenance`), not locally:
+# npm cannot generate provenance outside a supported OIDC provider.
 
 # PyPI (wheel only; no sdist by design)
 python -m build --wheel pip
