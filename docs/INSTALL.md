@@ -1,5 +1,7 @@
 # Install
 
+**Site:** <https://x-mcp-automation.danubelabs.net/>
+
 `xctl` ships through three channels. Pick one; they install the same application.
 
 | Channel | Command | Requires |
