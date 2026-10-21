@@ -102,6 +102,36 @@ Manual equivalent inside Claude Code:
 
 The plugin ships its own server bundle (`plugins/xctl/servers/xctl.mjs`), so it does **not** require a global npm install. On first use, set the spend cap, profile and optional config directory in the plugin settings.
 
+## Scopes and other agents
+
+`xctl install` takes one or more targets and a scope. `global` is the default; `project` writes into the current folder.
+
+| Target | global | project |
+|---|---|---|
+| `claude` | marketplace + plugin at Claude's **user** scope | marketplace + plugin at project scope (`.claude/settings.json`) |
+| `codex` | plugin + marketplace in `~/.codex` | `[mcp_servers.xctl]` in `.codex/config.toml` (mark the folder trusted in Codex) |
+| `opencode` | `~/.config/opencode/opencode.json` + skill + instructions | `opencode.json` in the folder |
+| `antigravity` | `agy mcp add` + `agy plugin install` | not supported (explicit error) |
+
+```bash
+xctl install all                 # every agent found on PATH
+xctl install all --scope project
+xctl install codex opencode
+xctl install claude --scope project
+xctl update all
+xctl uninstall all --scope all
+xctl uninstall claude --scope project
+```
+
+Notes:
+
+- Claude and Codex keep one scope active at a time. Installing a scope removes the other, so two servers do not answer the same tools.
+- Claude's marketplace is shared by every folder, so `uninstall` never removes it.
+- opencode edits only the `mcp.xctl` key and the instruction path, validates JSON before writing, and leaves a `.bak`.
+- Antigravity has no project scope; asking for one is a hard error.
+- `xctl setup --agent all` signs in once, installs every detected agent, then runs doctor.
+- Per-install records live in `~/.xctl/state/<agent>.json` (or `%APPDATA%\xctl\state`), so uninstall removes only what installation wrote.
+
 ## Other MCP clients
 
 Any client that accepts a stdio server can run `xctl-mcp`. JSON shape:

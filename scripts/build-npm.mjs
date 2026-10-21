@@ -5,6 +5,8 @@ import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const PLUGIN = 'xctl';
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const npmDir = join(root, 'npm');
 const pluginDir = join(root, 'plugins', 'xctl');
@@ -38,6 +40,13 @@ await copyFile(join(root, 'NOTICE'), join(npmDir, 'NOTICE'));
 // The plugin ships the same server bundle so it works without a global install.
 await mkdir(join(pluginDir, 'servers'), { recursive: true });
 await copyFile(join(npmDir, 'dist', 'mcp.mjs'), join(pluginDir, 'servers', 'xctl.mjs'));
+
+// Ship the canonical skill with the npm package so opencode/global installs can
+// copy it; it lives next to the bundled CLI.
+const skillSource = join(pluginDir, 'skills', PLUGIN, 'SKILL.md');
+const skillTarget = join(npmDir, 'skills', PLUGIN, 'SKILL.md');
+await mkdir(dirname(skillTarget), { recursive: true });
+await copyFile(skillSource, skillTarget);
 
 // PyPI launcher package: vendor the same bundles and sync its version.
 const pipDir = join(root, 'pip');

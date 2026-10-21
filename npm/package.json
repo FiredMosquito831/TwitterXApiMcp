@@ -1,6 +1,6 @@
 {
   "name": "x-mcp-automation",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "CLI and MCP server for your own X account: posts, threads, media, DMs, bookmarks, lists, analytics, plus an explicit opt-in unofficial transport.",
   "keywords": [
     "x",
@@ -39,6 +39,7 @@
     "bin/",
     "dist/",
     "scripts/",
+    "skills/",
     "README.md",
     "LICENSE",
     "NOTICE"

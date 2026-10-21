@@ -44,6 +44,17 @@ or manually:
 /plugin install xctl@xctl-marketplace
 ```
 
+**Other agents** (Codex, opencode, Antigravity) and project scopes:
+
+```bash
+xctl install all                    # every agent found on PATH
+xctl install all --scope project
+xctl install codex opencode
+xctl uninstall all
+```
+
+Each target follows the agent's own model: Claude and Codex use plugins plus a project config, opencode uses JSON config and a skill, Antigravity uses `agy`. See [`docs/INSTALL.md`](docs/INSTALL.md#scopes-and-other-agents) for the matrix.
+
 The plugin ships its own server bundle, so it does not need a global npm install. Its settings (spend cap, profile, config directory) are asked for in Claude Code's plugin settings.
 
 Detailed channels, updating, uninstalling and troubleshooting: [`docs/INSTALL.md`](docs/INSTALL.md).

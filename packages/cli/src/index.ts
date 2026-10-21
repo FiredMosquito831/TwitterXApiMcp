@@ -29,6 +29,16 @@ import {
   type OpContext,
 } from '@xctl/core';
 import { registry, type AnyOperation } from '@xctl/ops';
+import {
+  HARNESSES,
+  defaultCtx,
+  dispatch,
+  doctorHarnesses,
+  normalizeScope,
+  printSteps,
+  resolveTargets,
+  which,
+} from './harnesses/index.js';
 
 interface PendingAuth {
   profile: string;
@@ -478,100 +488,58 @@ configCmd
 
 /* ------------------------------------------------------- install/doctor */
 
-function claudeBinary(): string {
-  return process.platform === 'win32' ? 'claude.cmd' : 'claude';
-}
+program
+  .command('install [targets...]')
+  .description('Install the MCP server into agents: claude, codex, opencode, antigravity, or all')
+  .option('--scope <scope>', 'global (Claude: user) or project', 'global')
+  .option('--source <owner/repo>', 'marketplace repository', DEFAULT_MARKETPLACE)
+  .option('--agent <agent>', 'deprecated: same as a positional target (or none)')
+  .option('--dry-run', 'show what would be installed')
+  .action(async (targets: string[], opts) => {
+    try {
+      const names = targets.length
+        ? targets
+        : opts.agent && String(opts.agent) !== 'none'
+          ? [String(opts.agent)]
+          : ['claude'];
+      const scope = normalizeScope(String(opts.scope));
+      const ctx = defaultCtx(String(opts.source));
 
-interface InstallOptions {
-  agent: string;
-  scope: string;
-  marketplace: string;
-  dryRun?: boolean;
-  quiet?: boolean;
-}
+      if (opts.dryRun) {
+        for (const name of resolveTargets(names)) {
+          const harness = HARNESSES[name];
+          process.stdout.write(
+            `would install ${name} at ${scope} scope` +
+              (harness.capabilities.scopes.includes(scope) ? '' : ' (unsupported)') +
+              '\n',
+          );
+        }
+        process.stdout.write('would run: auth login is separate, then restart the agent\n');
+        return;
+      }
 
-async function installClaudePlugin(options: InstallOptions): Promise<void> {
-  const marketplace = options.marketplace;
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(marketplace)) {
-    fail(new Error('--marketplace must look like owner/repo'));
-  }
-  const scope = options.scope;
-  if (!['user', 'project', 'local'].includes(scope)) {
-    fail(new Error('--scope must be user, project or local'));
-  }
-
-  if (options.agent !== 'claude') {
-    process.stdout.write(
-      `For ${options.agent}, add this to its MCP configuration:\n\n` +
-        JSON.stringify(
-          {
-            mcpServers: {
-              xctl: {
-                command: 'npx',
-                args: ['-y', '--package', 'x-mcp-automation', 'xctl-mcp'],
-                env: { XCTL_SPEND_CAP: '5' },
-              },
-            },
-          },
-          null,
-          2,
-        ) +
-        '\n',
-    );
-    return;
-  }
-
-  const commands: Array<[string, string[]]> = [
-    [claudeBinary(), ['plugin', 'marketplace', 'add', marketplace]],
-    [claudeBinary(), ['plugin', 'install', 'xctl@xctl-marketplace', '--scope', scope]],
-  ];
-
-  if (options.dryRun) {
-    for (const [cmd, args] of commands) process.stdout.write(`${cmd} ${args.join(' ')}\n`);
-    return;
-  }
-
-  const probe = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
-  if (probe.error) {
-    fail(
-      new Error(
-        'The claude CLI was not found on PATH. Install Claude Code first, or add the server manually with ' +
-          '`claude mcp add --transport stdio x -- xctl-mcp`.',
-      ),
-    );
-  }
-
-  for (const [cmd, args] of commands) {
-    process.stderr.write(`> ${cmd} ${args.join(' ')}\n`);
-    const result = spawnSync(cmd, args, { stdio: 'inherit' });
-    if (result.status !== 0) {
-      fail(new Error(`Command failed (exit ${result.status ?? 'signal'}): ${cmd} ${args.join(' ')}`));
+      const steps = await dispatch('install', names, scope, ctx);
+      printSteps(steps);
+      if (steps.some((step) => step.status === 'error')) process.exitCode = 1;
+      else process.stdout.write(`\nNext: ${CLI_NAME} auth login, then restart the agent.\n`);
+    } catch (error) {
+      fail(error);
     }
-  }
-
-  if (!options.quiet) {
-    process.stdout.write(
-      '\nInstalled the xctl plugin.\nNext steps:\n' +
-        `  1. ${CLI_NAME} auth login\n` +
-        '  2. restart Claude Code and run /mcp to confirm the server is connected\n',
-    );
-  }
-}
+  });
 
 program
-  .command('install')
-  .description('Install the Claude Code plugin from this repository\'s marketplace')
-  .option('--agent <agent>', 'agent to configure: claude (others print a config snippet)', 'claude')
-  .option('--scope <scope>', 'user, project or local', 'user')
-  .option('--marketplace <owner/repo>', 'GitHub repo hosting .claude-plugin/marketplace.json', DEFAULT_MARKETPLACE)
-  .option('--dry-run', 'print the commands without running them')
-  .action(async (opts) => {
-    await installClaudePlugin({
-      agent: String(opts.agent),
-      scope: String(opts.scope),
-      marketplace: String(opts.marketplace),
-      ...(opts.dryRun ? { dryRun: true } : {}),
-    });
+  .command('update [targets...]')
+  .description('Update the installed plugin or config for one or more agents')
+  .option('--scope <scope>', 'global (Claude: user) or project', 'global')
+  .option('--source <owner/repo>', 'marketplace repository', DEFAULT_MARKETPLACE)
+  .action(async (targets: string[], opts) => {
+    try {
+      const steps = await dispatch('update', targets, normalizeScope(String(opts.scope)), defaultCtx(String(opts.source)));
+      printSteps(steps);
+      if (steps.some((step) => step.status === 'error')) process.exitCode = 1;
+    } catch (error) {
+      fail(error);
+    }
   });
 
 interface Check {
@@ -594,8 +562,18 @@ async function collectChecks(profile: string): Promise<Check[]> {
     /* not cached */
   }
 
-  const claude = spawnSync(claudeBinary(), ['--version'], { encoding: 'utf8' });
+  const claudePath = which('claude');
+  let claudeVersion = 'not found (optional)';
+  if (claudePath) {
+    const probe = spawnSync(claudePath, ['--version'], { encoding: 'utf8' });
+    claudeVersion = probe.error ? 'not found (optional)' : String(probe.stdout).trim();
+  }
   const nodeMajor = Number(process.versions.node.split('.')[0]);
+  const harnessChecks = (await doctorHarnesses(defaultCtx())).map((step) => ({
+    name: `${step.target}:${step.action}`.slice(0, 24),
+    ok: step.status !== 'error',
+    detail: `${step.status}${step.detail ? ` — ${step.detail}` : ''}`,
+  }));
 
   return [
     { name: 'node', ok: nodeMajor >= 24, detail: process.versions.node },
@@ -620,11 +598,12 @@ async function collectChecks(profile: string): Promise<Check[]> {
     },
     {
       name: 'claude_cli',
-      ok: !claude.error,
-      detail: claude.error ? 'not found' : String(claude.stdout).trim(),
+      ok: true,
+      detail: claudeVersion,
     },
     { name: 'config', ok: true, detail: paths.config() },
     { name: 'profile', ok: true, detail: profile },
+    ...harnessChecks,
   ];
 }
 
@@ -674,10 +653,11 @@ function runLoginSubprocess(profile: string): number {
 
 program
   .command('setup')
-  .description('Sign in, install the Claude Code plugin, then check the setup')
-  .option('--agent <agent>', 'claude, or none', 'claude')
-  .option('--scope <scope>', 'user, project or local', 'user')
-  .option('--marketplace <owner/repo>', 'GitHub repo hosting the marketplace', DEFAULT_MARKETPLACE)
+  .description('Sign in, install the MCP server into agents, then check the setup')
+  .option('--agent <agent>', 'claude (default), all, a comma list, or none', 'claude')
+  .option('--scope <scope>', 'global (Claude: user) or project', 'global')
+  .option('--source <owner/repo>', 'marketplace repository', DEFAULT_MARKETPLACE)
+  .option('--marketplace <owner/repo>', 'deprecated alias for --source')
   .option('--skip-auth', 'do not start the OAuth login')
   .option('--dry-run', 'print what would happen')
   .action(async (opts, command: Command) => {
@@ -685,11 +665,17 @@ program
     const config = await loadConfig();
     const profile = resolveProfileName(config, globals.profile);
     const agent = String(opts.agent);
+    const names = agent === 'none' ? [] : agent.split(',').map((name) => name.trim()).filter(Boolean);
+    const scope = normalizeScope(String(opts.scope));
+    const source = String(opts.source ?? opts.marketplace ?? DEFAULT_MARKETPLACE);
+    const ctx = defaultCtx(source);
 
     if (opts.dryRun) {
       process.stdout.write(`profile: ${profile}\n`);
       if (!opts.skipAuth) process.stdout.write('would sign in if no token is stored\n');
-      if (agent !== 'none') process.stdout.write(`would install the ${agent} plugin\n`);
+      for (const name of resolveTargets(names)) {
+        process.stdout.write(`would install ${name} at ${scope} scope\n`);
+      }
       process.stdout.write('would run: doctor\n');
       return;
     }
@@ -702,13 +688,9 @@ program
       }
     }
 
-    if (agent !== 'none') {
-      await installClaudePlugin({
-        agent,
-        scope: String(opts.scope),
-        marketplace: String(opts.marketplace),
-        quiet: true,
-      });
+    if (names.length) {
+      const steps = await dispatch('install', names, scope, ctx);
+      printSteps(steps);
     }
 
     const checks = await collectChecks(profile);
@@ -716,33 +698,32 @@ program
   });
 
 program
-  .command('uninstall')
-  .description('Remove the Claude Code plugin and optionally stored credentials')
-  .option('--agent <agent>', 'claude, or none', 'claude')
+  .command('uninstall [targets...]')
+  .description('Remove the MCP server from agents, and optionally stored credentials')
+  .option('--agent <agent>', 'deprecated: same as a positional target')
+  .option('--scope <scope>', 'all, global or project', 'all')
+  .option('--source <owner/repo>', 'marketplace repository', DEFAULT_MARKETPLACE)
   .option('--purge', 'also delete stored OAuth tokens and cookies for the active profile')
-  .option('--dry-run', 'print the commands without running them')
-  .action(async (opts, command: Command) => {
+  .option('--dry-run', 'print what would happen')
+  .action(async (targets: string[], opts, command: Command) => {
     const globals = command.optsWithGlobals() as { profile?: string };
     const config = await loadConfig();
     const profile = resolveProfileName(config, globals.profile);
-
-    const commands: Array<[string, string[]]> = [];
-    if (String(opts.agent) === 'claude') {
-      commands.push([claudeBinary(), ['plugin', 'uninstall', 'xctl@xctl-marketplace']]);
-      commands.push([claudeBinary(), ['plugin', 'marketplace', 'remove', 'xctl-marketplace']]);
-    }
+    const names = targets.length ? targets : opts.agent ? [String(opts.agent)] : ['all'];
+    const scopeRaw = String(opts.scope).toLowerCase();
+    const scope = scopeRaw === 'all' ? 'all' : normalizeScope(scopeRaw);
+    const ctx = defaultCtx(String(opts.source));
 
     if (opts.dryRun) {
-      for (const [cmd, args] of commands) process.stdout.write(`${cmd} ${args.join(' ')}\n`);
+      for (const name of resolveTargets(names)) {
+        process.stdout.write(`would uninstall ${name} at ${scope} scope\n`);
+      }
       if (opts.purge) process.stdout.write(`would delete credentials for profile "${profile}"\n`);
     } else {
-      for (const [cmd, args] of commands) {
-        process.stderr.write(`> ${cmd} ${args.join(' ')}\n`);
-        const result = spawnSync(cmd, args, { stdio: 'inherit' });
-        if (result.status !== 0) {
-          process.stderr.write('warning: that command failed; it may already be removed.\n');
-        }
-      }
+      const steps = await dispatch('uninstall', names, scope, ctx);
+      printSteps(steps);
+      if (steps.some((step) => step.status === 'error')) process.exitCode = 1;
+
       if (opts.purge) {
         const store = await openSecretStore();
         await store.delete(oauthKey(profile));

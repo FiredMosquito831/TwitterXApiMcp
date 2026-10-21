@@ -15,7 +15,8 @@ node packages/cli/dist/index.js posts create --text "hi" --dry-run   # no creden
 node packages/cli/dist/index.js auth status
 node packages/cli/dist/index.js config set-unofficial on --i-understand
 node packages/cli/dist/index.js setup --dry-run
-node packages/cli/dist/index.js uninstall --dry-run
+node packages/cli/dist/index.js install all --dry-run
+node packages/cli/dist/index.js uninstall all --dry-run
 
 node scripts/test-core.mjs        # PKCE, pricing, limiter, state, cookies, materials
 node scripts/test-ops.mjs         # operation behavior with a fake transport
@@ -38,7 +39,7 @@ Five packages, dependency direction `core ← ops ← {unofficial, cli, mcp}`:
 - **`packages/core`** — everything infrastructure: `OfficialTransport` over X API v2, OAuth 2.0 PKCE (`oauth.ts`), keychain-backed credential store with a 0600 file fallback (`credentials.ts`), JSON config (`config.ts`), `node:sqlite` state with an in-memory fallback (`state.ts`), header-seeded rate limiter, and the USD spend meter. `createRuntime()` is **async** because it may refresh tokens and open state.
 - **`packages/ops`** — the operation registry: 49 official operations, each declaring zod input/output, rate class, cost, MCP annotations and `run()`. `run()` must not import commander, the MCP SDK, or a transport implementation.
 - **`packages/unofficial`** — the opt-in private-web-API adapter: cookie parsing/import, runtime query-id discovery from JS bundles, `x-client-transaction-id` generation (ported from MIT prior art — see `THIRD_PARTY_NOTICES.md`), and 11 operations (likes, follows, profile edits, avatar/banner, pin, quote, long note).
-- **`packages/cli`** — commander front-end. Subcommands and flags are generated from the registry via `z.toJSONSchema`; unofficial ops only register when config enables them and require `--confirm`.
+- **`packages/cli`** — commander front-end. Subcommands and flags are generated from the registry via `z.toJSONSchema`; unofficial ops only register when config enables them and require `--confirm`. `packages/cli/src/harnesses/` holds one isolated adapter per agent (`claude`, `codex`, `opencode`, `antigravity`), each with its own scope rules, state file under `~/.xctl/state`, and install/update/uninstall/doctor.
 - **`packages/mcp`** — MCP v2 server. Registers 49 official tools + 2 meta-tools by default; 60 + 2 when unofficial is enabled. Runtime construction is lazy and shared; official tools check `ctx.hasToken`, unofficial tools attach a cookie-backed client.
 
 Adding an operation is one entry in `packages/ops/src/registry.ts` (or `packages/unofficial/src/ops.ts`). It appears as `x <group> <verb>`, as an MCP tool, and in `x ops` with no other edits.
