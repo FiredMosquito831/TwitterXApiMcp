@@ -2,6 +2,12 @@
 
 All notable changes to this project. Versions follow semver; npm and PyPI releases are immutable.
 
+## 0.2.2 — 2026-10-21
+
+- Package, plugin and PyPI homepages now point at <https://x-mcp-automation.danubelabs.net/>.
+- Documentation links on the site use correct file URLs.
+- No functional changes.
+
 ## 0.2.1 — 2026-10-21
 
 - `--agent none` now installs no agent instead of falling back to Claude.

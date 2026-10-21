@@ -8030,7 +8030,7 @@ var VERSION;
 var init_version = __esm({
   "packages/core/dist/version.js"() {
     "use strict";
-    VERSION = "0.2.1";
+    VERSION = "0.2.2";
   }
 });
 
