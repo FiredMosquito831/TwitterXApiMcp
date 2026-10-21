@@ -65,3 +65,4 @@ export {
   type OAuthTokens,
 } from './oauth.js';
 export { openState, type BucketRecord, type QueueItem, type StateStore } from './state.js';
+export { VERSION } from './version.js';

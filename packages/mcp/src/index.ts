@@ -5,6 +5,7 @@ import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import {
   createRuntime,
   loadConfig,
+  VERSION,
   XApiError,
   type OpContext,
 } from '@xctl/core';
@@ -86,7 +87,7 @@ async function loadOperations(): Promise<AnyOperation[]> {
 
 function buildServer(ops: AnyOperation[]): McpServer {
   const server = new McpServer(
-    { name: 'xctl', version: '0.1.0' },
+    { name: 'xctl', version: VERSION },
     { maxToolInputElements: 5_000 },
   );
 

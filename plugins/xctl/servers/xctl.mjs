@@ -8025,6 +8025,15 @@ var init_runtime = __esm({
   }
 });
 
+// packages/core/dist/version.js
+var VERSION;
+var init_version = __esm({
+  "packages/core/dist/version.js"() {
+    "use strict";
+    VERSION = "0.1.1";
+  }
+});
+
 // packages/core/dist/index.js
 var init_dist = __esm({
   "packages/core/dist/index.js"() {
@@ -8039,6 +8048,7 @@ var init_dist = __esm({
     init_credentials();
     init_oauth();
     init_state();
+    init_version();
   }
 });
 
@@ -43254,7 +43264,7 @@ async function loadOperations() {
 }
 function buildServer(ops) {
   const server = new McpServer(
-    { name: "xctl", version: "0.1.0" },
+    { name: "xctl", version: VERSION },
     { maxToolInputElements: 5e3 }
   );
   for (const op of ops) {

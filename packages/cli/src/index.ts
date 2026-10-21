@@ -22,6 +22,7 @@ import {
   resolveProfileName,
   setJson,
   updateConfig,
+  VERSION,
   XApiError,
   type OAuthApp,
   type OAuthTokens,
@@ -196,7 +197,7 @@ const DEFAULT_MARKETPLACE = process.env['XCTL_MARKETPLACE'] ?? 'FiredMosquito831
 program
   .name(CLI_NAME)
   .description('Terminal control plane for your own X account')
-  .version('0.1.0')
+  .version(VERSION)
   .option('--json', 'emit compact machine-readable JSON')
   .option('--profile <name>', 'account profile to use')
   .option('--spend-cap <usd>', 'hard spend cap for this invocation', parseFloat)

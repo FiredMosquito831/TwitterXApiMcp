@@ -17,10 +17,13 @@ const pyVersion = /^version = "([^"]+)"/m.exec(pyproject)?.[1];
 const plugin = JSON.parse(await read('plugins/xctl/.claude-plugin/plugin.json'));
 const marketplace = JSON.parse(await read('.claude-plugin/marketplace.json'));
 const mcpJson = JSON.parse(await read('plugins/xctl/.mcp.json'));
+const versionTs = await read('packages/core/src/version.ts');
+const tsVersion = /VERSION = '([^']+)'/.exec(versionTs)?.[1];
 
 assert.match(version, /^\d+\.\d+\.\d+$/, 'npm version must be semver');
 assert.equal(pyVersion, version, 'pip/pyproject.toml version must match npm/package.json');
 assert.equal(plugin.version, version, 'plugin.json version must match npm/package.json');
+assert.equal(tsVersion, version, 'packages/core/src/version.ts must match npm/package.json');
 assert.equal(
   marketplace.metadata.version,
   version,
