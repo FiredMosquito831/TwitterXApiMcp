@@ -1,0 +1,23 @@
+{
+  "name": "@xctl/unofficial",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@xctl/core": "*",
+    "@xctl/ops": "*",
+    "linkedom": "^0.18.12",
+    "zod": "^4.6.7"
+  }
+}

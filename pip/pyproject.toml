@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "x-mcp-automation"
+version = "0.1.0"
+description = "Launcher for the xctl CLI and MCP server for your own X account. Requires Node.js 24 or newer."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "FiredMosquito831" }]
+keywords = [
+  "x", "twitter", "mcp", "model-context-protocol", "claude-code",
+  "cli", "ai-agents", "twitter-api", "x-api",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Communications",
+  "Topic :: Internet",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/FiredMosquito831/TwitterXApiMcp"
+Repository = "https://github.com/FiredMosquito831/TwitterXApiMcp"
+Issues = "https://github.com/FiredMosquito831/TwitterXApiMcp/issues"
+
+[project.scripts]
+xctl = "xctl.launcher:cli"
+xctl-mcp = "xctl.launcher:mcp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xctl"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/README.md",
+  "/LICENSE",
+  "/NOTICE",
+]

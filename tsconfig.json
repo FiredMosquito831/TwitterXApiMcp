@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/ops" },
+    { "path": "./packages/unofficial" },
+    { "path": "./packages/cli" },
+    { "path": "./packages/mcp" }
+  ]
+}

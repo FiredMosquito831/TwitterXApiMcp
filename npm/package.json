@@ -1,0 +1,50 @@
+{
+  "name": "x-mcp-automation",
+  "version": "0.1.0",
+  "description": "CLI and MCP server for your own X account: posts, threads, media, DMs, bookmarks, lists, analytics, plus an explicit opt-in unofficial transport.",
+  "keywords": [
+    "x",
+    "twitter",
+    "mcp",
+    "model-context-protocol",
+    "claude-code",
+    "claude-code-plugin",
+    "cli",
+    "ai-agents",
+    "twitter-api",
+    "x-api"
+  ],
+  "license": "Apache-2.0",
+  "author": "FiredMosquito831 (https://github.com/FiredMosquito831)",
+  "homepage": "https://github.com/FiredMosquito831/TwitterXApiMcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FiredMosquito831/TwitterXApiMcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FiredMosquito831/TwitterXApiMcp/issues"
+  },
+  "bin": {
+    "xctl": "bin/xctl.mjs",
+    "xctl-mcp": "bin/xctl-mcp.mjs",
+    "x": "bin/x.mjs",
+    "x-mcp": "bin/x-mcp.mjs"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "optionalDependencies": {
+    "@napi-rs/keyring": "^2.1.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

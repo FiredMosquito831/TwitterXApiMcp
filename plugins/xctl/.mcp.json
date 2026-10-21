@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "xctl": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/xctl.mjs"],
+      "env": {
+        "XCTL_SPEND_CAP": "${user_config.spend_cap}",
+        "X_PROFILE": "${user_config.profile}",
+        "XCTL_HOME": "${user_config.home}"
+      }
+    }
+  }
+}

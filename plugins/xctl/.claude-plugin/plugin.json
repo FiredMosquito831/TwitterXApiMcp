@@ -1,0 +1,40 @@
+{
+  "name": "xctl",
+  "displayName": "X Control Plane",
+  "version": "0.1.0",
+  "description": "Control your own X account from Claude Code: post, thread, upload media, read timelines and DMs, manage bookmarks and lists, view analytics. Official API first, with an explicit opt-in unofficial transport for likes, follows, profile edits and pinned posts.",
+  "author": {
+    "name": "FiredMosquito831"
+  },
+  "homepage": "https://github.com/FiredMosquito831/TwitterXApiMcp",
+  "repository": "https://github.com/FiredMosquito831/TwitterXApiMcp",
+  "keywords": [
+    "x",
+    "twitter",
+    "mcp",
+    "social",
+    "posts",
+    "claude-code",
+    "plugin"
+  ],
+  "userConfig": {
+    "spend_cap": {
+      "type": "string",
+      "title": "Monthly spend cap (USD)",
+      "description": "Hard cap for recorded X API spend per profile. The server refuses operations that would cross it.",
+      "default": "5"
+    },
+    "profile": {
+      "type": "string",
+      "title": "Account profile",
+      "description": "Which local profile (credentials and rate budgets) the server should use.",
+      "default": "default"
+    },
+    "home": {
+      "type": "string",
+      "title": "Config directory (optional)",
+      "description": "Where xctl stores config, state and caches. Leave empty for the platform default.",
+      "required": false
+    }
+  }
+}

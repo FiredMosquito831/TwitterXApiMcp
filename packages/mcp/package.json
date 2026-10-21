@@ -1,0 +1,19 @@
+{
+  "name": "@xctl/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "x-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "@xctl/core": "*",
+    "@xctl/ops": "*",
+    "@xctl/unofficial": "*",
+    "zod": "^4.6.7"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "xctl",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "typecheck": "tsc -b",
+    "x": "node packages/cli/dist/index.js",
+    "mcp": "node packages/mcp/dist/index.js",
+    "verify": "node scripts/verify-registry.mjs",
+    "smoke:mcp": "node scripts/mcp-smoke.mjs",
+    "package:build": "npm run build && node scripts/build-npm.mjs",
+    "package:pack": "npm run package:build && cd npm && npm pack",
+    "test": "npm run build && node scripts/test-core.mjs && node scripts/test-ops.mjs && node scripts/verify-registry.mjs && node scripts/mcp-smoke.mjs && node scripts/test-mcp.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/keyring": "^2.1.2",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

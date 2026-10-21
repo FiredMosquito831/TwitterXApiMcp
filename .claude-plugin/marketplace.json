@@ -1,0 +1,18 @@
+{
+  "name": "xctl-marketplace",
+  "owner": {
+    "name": "FiredMosquito831"
+  },
+  "metadata": {
+    "description": "Claude Code plugin marketplace for xctl: control your own X account from an agent, with explicit confirmation and spend limits.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "xctl",
+      "description": "Posts, threads, media, DMs, bookmarks, lists, analytics and an opt-in unofficial transport for likes, follows and profile edits.",
+      "source": "./plugins/xctl",
+      "strict": false
+    }
+  ]
+}

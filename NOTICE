@@ -1,0 +1,13 @@
+xctl
+Copyright 2026 FiredMosquito831
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It includes or derives from the following third-party software:
+
+  - x-client-transaction-id (MIT) — transaction-id derivation
+  - twscrape (MIT) — GraphQL feature-flag set
+  - linkedom (ISC) — HTML parsing dependency
+
+The X web bearer token embedded in the unofficial transport is the public
+credential shipped in X's own browser bundle. It is not a user secret.

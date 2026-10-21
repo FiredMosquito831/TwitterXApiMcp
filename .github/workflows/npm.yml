@@ -1,0 +1,51 @@
+name: npm
+
+# Publishes the package in npm/ on every push to main that changes it.
+# Uses npm trusted publishing (OIDC), so no token is stored in GitHub.
+# Publishes only when the version in npm/package.json is not already on npm:
+# bump "version" there to release.
+#
+# One-time setup on npmjs.com: package x-mcp-automation -> Settings ->
+# Trusted publisher -> GitHub Actions -> owner FiredMosquito831,
+# repo TwitterXApiMcp, workflow filename npm.yml, environment empty.
+
+on:
+  push:
+    branches: [main]
+    paths: ["npm/**", "packages/**", "scripts/build-npm.mjs", ".github/workflows/npm.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Build the bundled package and plugin server
+        run: npm run package:build
+
+      - name: Use a recent npm (trusted publishing needs 11.5.1+)
+        run: npm install -g npm@latest
+
+      - name: Publish the version if it is new
+        working-directory: npm
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm. Bump the version in npm/package.json to release."
+          else
+            npm publish --provenance --access public
+          fi
